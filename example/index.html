@@ -8,8 +8,11 @@
   </head>
   <body>
     <div id="app">
-      <div>{{msg}}</div>
-      <div v-text="msg"></div>
+      <p v-text="test1" title="test1"></p>
+      <p v-html="test2" title="test2"></p>
+      <input type="text" v-model="test3" />
+      <button v-on:click="clickFn1">test for v-on</button>
+      <button @click="clickFn2">test for @</button>
     </div>
   </body>
   <script src="../src/compile.js"></script>
@@ -18,9 +21,20 @@
     const vm = new Vue({
       el: '#app',
       data: {
-        msg: 'hello MVVM'
+        test1: 'test for v-text',
+        test2: '<h3>test for v-html</h3>',
+        test3: 'test for v-model',
+        test4: 'test for v-on',
+        test5: 'test for @'
+      },
+      methods: {
+        clickFn1() {
+          alert(this.$data.test4)
+        },
+        clickFn2() {
+          alert(this.$data.test5)
+        }
       }
     })
-    console.log(vm)
   </script>
 </html>
