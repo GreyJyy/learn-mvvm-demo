@@ -8,8 +8,9 @@
  1. Compile:star:
 >实现对**插值表达式**/**v-text**/**v-html**/**v-model**/**v-on**的编译
  2. Observer:star:
- 3. Watcher:star:
-
+>通过Object.defineProperty实现了数据劫持
+ 3. Dep + Watcher:star:
+>发布订阅模式的实现
 
 
 Tips :clap:
