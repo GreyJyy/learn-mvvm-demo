@@ -80,6 +80,7 @@ class Compile {
   compileText(node) {
     compileUtil['mustache'](node, this.vm)
   }
+
   /**
    *
    * @param {likeArray} likeArray 由HTMLElement组成的类数组
@@ -137,16 +138,31 @@ const compileUtil = {
         MustacheReg,
         this.getVmValue(vm, expression)
       )
+      new Watcher(vm, expression, (oldValue, newValue) => {
+        node.textContent = newValue
+      })
     }
   },
   text(node, vm, directiveValue) {
     node.textContent = this.getVmValue(vm, directiveValue)
+    new Watcher(vm, directiveValue, (oldValue, newValue) => {
+      node.textContent = newValue
+    })
   },
   html(node, vm, directiveValue) {
     node.innerHTML = this.getVmValue(vm, directiveValue)
   },
   model(node, vm, directiveValue) {
+    const that = this
     node.value = this.getVmValue(vm, directiveValue)
+    //实现v-model数据双向绑定
+    node.addEventListener('input', function () {
+      that.setVmValue(vm, directiveValue, this.value)
+      vm.$data[directiveValue] = this.value
+    })
+    new Watcher(vm, directiveValue, (oldValue, newValue) => {
+      node.value = newValue
+    })
   },
   handleEvent(node, vm, directiveType, directiveValue) {
     //获取事件类型
@@ -175,6 +191,19 @@ const compileUtil = {
       return JSON.stringify(data[expression])
     //循环赋值
     expression.split('.').forEach(key => (data = data[key]))
+    return data
+  },
+  //考虑双向数据绑定的数据为引用类型时
+  setVmValue(vm, expression, value) {
+    let data = vm.$data
+    if (data[expression] instanceof Object)
+      return JSON.stringify(data[expression])
+    //循环赋值
+    const arr = expression.split('.')
+    //找到最深一层赋值为value
+    arr.forEach((key, index) => {
+      index < arr.length - 1 ? (data = data[key]) : (data[key] = value)
+    })
     return data
   }
 }

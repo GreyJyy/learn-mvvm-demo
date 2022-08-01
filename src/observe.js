@@ -17,13 +17,17 @@ class Observe {
   }
 
   //定义响应式数据(数据劫持)
+  //data中的每个数据(key)都应该对应一个dep对象,因为dep中保存了所有订阅该数据的订阅者
   defineReactive(data, key, oldValue) {
     //保存this指向
     const OBSERVER = this
+    const dep = new Dep()
     Object.defineProperty(data, key, {
       configurable: true,
       enumerable: true,
       get() {
+        //把订阅者watcher存储到订阅者列表
+        Dep.target && dep.addSub(Dep.target)
         return oldValue
       },
       set(newValue) {
@@ -31,6 +35,7 @@ class Observe {
         oldValue = newValue
         //如果重新赋值,也进行数据劫持
         OBSERVER.walk(newValue)
+        dep.notify()
       }
     })
   }

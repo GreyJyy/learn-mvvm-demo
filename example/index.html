@@ -13,7 +13,7 @@
       <p v-text="msg.second"></p>
       <p>normal text</p>
       <p>special text -- {{test6}}</p>
-      <p v-text="test1" title="test1"></p>
+      <p v-text="test1"></p>
       <p v-html="test2" title="test2"></p>
       <input type="text" v-model="test3" />
       <button v-on:click="clickFn1">test for v-on</button>
@@ -22,6 +22,8 @@
   </body>
   <script src="../src/observe.js"></script>
   <script src="../src/compile.js"></script>
+  <script src="../src/dep.js"></script>
+  <script src="../src/watcher.js"></script>
   <script src="../src/vue.js"></script>
   <script>
     const vm = new Vue({
@@ -40,10 +42,10 @@
       },
       methods: {
         clickFn1() {
-          alert(this.$data.test4)
+          alert(this.test4)
         },
         clickFn2() {
-          alert(this.$data.test5)
+          alert(this.test5)
         }
       }
     })
