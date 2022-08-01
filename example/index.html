@@ -8,6 +8,11 @@
   </head>
   <body>
     <div id="app">
+      <p>{{msg}}</p>
+      <p>{{msg.first}}</p>
+      <p v-text="msg.second"></p>
+      <p>normal text</p>
+      <p>special text -- {{test6}}</p>
       <p v-text="test1" title="test1"></p>
       <p v-html="test2" title="test2"></p>
       <input type="text" v-model="test3" />
@@ -25,7 +30,12 @@
         test2: '<h3>test for v-html</h3>',
         test3: 'test for v-model',
         test4: 'test for v-on',
-        test5: 'test for @'
+        test5: 'test for @',
+        test6: 'test for Mustache',
+        msg: {
+          first: 'first msg',
+          second: 'second msg'
+        }
       },
       methods: {
         clickFn1() {

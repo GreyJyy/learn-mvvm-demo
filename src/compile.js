@@ -40,9 +40,9 @@ class Compile {
         this.compileElement(node)
       }
       // //如果是文本节点,解析插值表达式
-      // if (this.isTextNode(node)) {
-      //   this.compileText(node)
-      // }
+      if (this.isTextNode(node)) {
+        this.compileText(node)
+      }
       //如果子节点还有子节点,需要递归解析
       if (node.childNodes) this.compile(node)
     })
@@ -50,30 +50,35 @@ class Compile {
   //解析元素节点
   compileElement(node) {
     //1.获取当前节点下所有属性
-    const attributes = node.attributes
-    this.likeArray2Array(attributes).forEach(attr => {
-      const attrName = attr.name
-      const directiveValue = attr.value
+    const _attributes = node.attributes
+    this.likeArray2Array(_attributes).forEach(attr => {
+      const _attrName = attr.name
+      const _directiveValue = attr.value
       //2.解析所有以v-开头的属性
-      if (this.isDirective(attrName)) {
-        const directiveType = attrName.slice(2)
+      if (this.isDirective(_attrName)) {
+        const _directiveType = _attrName.slice(2)
         //解析v-on
-        if (this.isEventDirective(directiveType)) {
-          compileUtil.handleEvent(node, this.vm, directiveType, directiveValue)
+        if (this.isEventDirective(_directiveType)) {
+          compileUtil.handleEvent(
+            node,
+            this.vm,
+            _directiveType,
+            _directiveValue
+          )
         }
         //解析v-text v-html v-model
-        compileUtil[directiveType] &&
-          compileUtil[directiveType](node, this.vm, directiveValue)
+        compileUtil[_directiveType] &&
+          compileUtil[_directiveType](node, this.vm, _directiveValue)
       }
       //3.解析@语法糖
-      if (attrName.startsWith('@')) {
-        compileUtil.handleEventSugar(node, this.vm, attrName, directiveValue)
+      if (_attrName.startsWith('@')) {
+        compileUtil.handleEventSugar(node, this.vm, _attrName, _directiveValue)
       }
     })
   }
   //解析文本节点
   compileText(node) {
-    console.log('文本')
+    compileUtil['mustache'](node, this.vm)
   }
   /**
    *
@@ -111,6 +116,11 @@ class Compile {
     return attrName.startsWith('v-')
   }
 
+  /**
+   *
+   * @param {String} directiveType 'v-'后的字符
+   * @returns 以:为分界,分界前如果为'on'则返回true
+   */
   isEventDirective(directiveType) {
     return directiveType.split(':')[0] === 'on'
   }
@@ -118,14 +128,25 @@ class Compile {
 
 //处理自定义指令逻辑
 const compileUtil = {
+  mustache(node, vm) {
+    const _text = node.textContent
+    const MustacheReg = /\{\{(.+)\}\}/
+    if (MustacheReg.test(_text)) {
+      const expression = RegExp.$1
+      node.textContent = _text.replace(
+        MustacheReg,
+        this.getVmValue(vm, expression)
+      )
+    }
+  },
   text(node, vm, directiveValue) {
-    node.textContent = vm.$data[directiveValue]
+    node.textContent = this.getVmValue(vm, directiveValue)
   },
   html(node, vm, directiveValue) {
-    node.innerHTML = vm.$data[directiveValue]
+    node.innerHTML = this.getVmValue(vm, directiveValue)
   },
   model(node, vm, directiveValue) {
-    node.value = vm.$data[directiveValue]
+    node.value = this.getVmValue(vm, directiveValue)
   },
   handleEvent(node, vm, directiveType, directiveValue) {
     //获取事件类型
@@ -139,5 +160,21 @@ const compileUtil = {
     const eventType = attrName.slice(1)
     vm.$methods[directiveValue] &&
       node.addEventListener(eventType, vm.$methods[directiveValue].bind(vm))
+  },
+
+  /**
+   *
+   * @param {Object} vm vue实例
+   * @param {String} expression mustache匹配的字符串
+   * @returns 获取最里层数据
+   */
+  getVmValue(vm, expression) {
+    let data = vm.$data
+    //解决[object Object]问题
+    if (data[expression] instanceof Object)
+      return JSON.stringify(data[expression])
+    //循环赋值
+    expression.split('.').forEach(key => (data = data[key]))
+    return data
   }
 }
